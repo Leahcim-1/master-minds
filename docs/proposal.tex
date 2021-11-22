@@ -52,7 +52,7 @@ The Mastermind Problem has been proven to be NP-Complete\footnote{Stuckman, J., 
 	\item Play the guess and get response from codemaker
 	\item If the feedback is all black, we have found the code.
 	\item Otherwise, remove all the codes that would not produce the most recent response from $S$. For example, if our guess had two blues and the response is only one white peg, then we know the true code cannot have two blues.
-	\item For the next guess, select a code (not necessarily in $S$) which minimizes the maxmimal possible number of remaining codes in $S$ across all possible true codes.
+	\item For the next guess, select a code (not necessarily in $S$) which minimizes the maximum possible number of remaining codes in $S$ across all possible true codes.
 	\item Repeat from Step 3.
 \end{enumerate}
 
@@ -67,4 +67,11 @@ Since the Mastermind game has many variations, we intend to test our project on 
 
 \end{enumerate}
 Our project could also be used to analyze which codewords minimize the maximum or average number of guesses required based on which initial guess is used for each of these variations.
+
+\section{Opportunities for Parallelization}
+\begin{enumerate}
+	\item The execution of the algorithm with different initial guesses is embarrassingly parallelizable.
+	\item In the process of selecting the next guess, the calculation of the worst-case (maximum possible) number of remaining codes for any given guess can be parallelized.
+	\item If we desire to play multiple variations of the game at the same time, such gameplay can also be parallelized.
+\end{enumerate}
 \end{document}
