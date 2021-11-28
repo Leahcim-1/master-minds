@@ -1,3 +1,10 @@
+.aux
+.fls
+.fdb*
+*.log
+
+
+
 dist
 dist-*
 cabal-dev
