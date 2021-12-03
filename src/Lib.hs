@@ -1,9 +1,8 @@
 module Lib
-    ( 
+    (
     ) where
-
-import Data.List
-
+import Text.XHtml.Transitional (HotLink(hotLinkAttributes))
+import Data.List(nub)
 
 
 data Peg = White | Black
@@ -16,10 +15,14 @@ type ResponsePegs = [Peg]
 
 type Code a = [a]
 
-type CodeSet a = [Code a] -- S
+type CodeSet a = [Code a]
 
-generateCodeSet :: Ord a => [a] -> CodeSet a
-generateCodeSet list = error ""
+generateCodeSet :: (Eq a, Num a) => [a] -> a -> [[a]]
+generateCodeSet [] _ = error "Give me a non-empty list"
+generateCodeSet list hole 
+    | hole == 1           = [ [x] | x <- list]
+    | otherwise           = [ x:xs | x <- list, xs <- generateCodeSet list 3]
+    
 
 guessResult :: Ord a => Code a -> Code a -> ResponsePegs
 guessResult ans guess = replicate numBlack Black ++ replicate numWhite White
@@ -32,9 +35,13 @@ guessResult ans guess = replicate numBlack Black ++ replicate numWhite White
     Given the current codeset, a guess, and its corresponding response,
     return a new codeset with codes which are now impossible filtered out
 -}
-filterCodeSet :: Ord a => CodeSet a -> Code a -> ResponsePegs -> CodeSet
+filterCodeSet :: Ord a => CodeSet a -> Code a -> ResponsePegs -> CodeSet a
 filterCodeSet set guess response = error ""
 
-generateNextGuess :: Ord a => CodeSet a -> Code a
-generateNextGuess codeset = error ""
+generateNextGuess :: Ord a => CodeSet a -> ResponsePegs -> Code a
+generateNextGuess codeset [] = error ""
+generateNextGuess codeset res@(x:xs) = error ""
+
+
+
 
