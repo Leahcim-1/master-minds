@@ -28,6 +28,13 @@ guessResult ans guess = replicate numBlack Black ++ replicate numWhite White
           minCodeCount v = min (count v ans) (count v guess)
           count v ls = length $ filter (==v) ls
 
+{-
+    Given the current codeset, a guess, and its corresponding response,
+    return a new codeset with codes which are now impossible filtered out
+-}
+filterCodeSet :: Ord a => CodeSet a -> Code a -> ResponsePegs -> CodeSet
+filterCodeSet set guess response = error ""
+
 generateNextGuess :: Ord a => CodeSet a -> Code a
 generateNextGuess codeset = error ""
 
