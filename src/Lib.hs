@@ -4,13 +4,7 @@ module Lib
 import Data.List(nub)
 
 
-data Peg = White | Black
-
-instance Show Peg where
-    show Black = "Black"
-    show White = "White"
-
-type ResponsePegs = [Peg]
+type ResponsePegs = (Int, Int)
 
 type Code a = [a]
 
@@ -24,7 +18,7 @@ generateCodeSet list hole
     
 
 guessResult :: Ord a => Code a -> Code a -> ResponsePegs
-guessResult ans guess = replicate numBlack Black ++ replicate numWhite White
+guessResult ans guess = (numBlack, numWhite)
     where numBlack = length $ filter id $ zipWith (==) ans guess
           numWhite = sum (map minCodeCount $ nub guess) - numBlack
           minCodeCount v = min (count v ans) (count v guess)
@@ -38,11 +32,15 @@ guessResult ans guess = replicate numBlack Black ++ replicate numWhite White
     do this filtering)
 -}
 filterCodeSet :: Ord a => CodeSet a -> Code a -> ResponsePegs -> CodeSet a
-filterCodeSet set guess response = error ""
+filterCodeSet set guess response =
+    filter (satisfies response . guessResult guess) set
+    where satisfies targetR relativeR =
+            fst relativeR >= fst targetR &&
+            tSum relativeR >= tSum targetR
+          tSum (a, b) = a + b
 
 generateNextGuess :: Ord a => CodeSet a -> ResponsePegs -> Code a
-generateNextGuess codeset [] = error ""
-generateNextGuess codeset res@(x:xs) = error ""
+generateNextGuess codeset resp = error ""
 
 
 
