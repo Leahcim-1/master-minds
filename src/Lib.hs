@@ -1,7 +1,6 @@
 module Lib
     (
     ) where
-import Text.XHtml.Transitional (HotLink(hotLinkAttributes))
 import Data.List(nub)
 
 
