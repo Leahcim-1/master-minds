@@ -21,7 +21,7 @@ generateCodeSet :: (Eq a, Num a) => [a] -> a -> [[a]]
 generateCodeSet [] _ = error "Give me a non-empty list"
 generateCodeSet list hole 
     | hole == 1           = [ [x] | x <- list]
-    | otherwise           = [ x:xs | x <- list, xs <- generateCodeSet list 3]
+    | otherwise           = [ x:xs | x <- list, xs <- generateCodeSet list $ hole - 1]
     
 
 guessResult :: Ord a => Code a -> Code a -> ResponsePegs
