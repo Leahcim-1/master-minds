@@ -2,20 +2,24 @@ module Main where
 
 import Lib
 
+{- Bind Int to readLn -}
+readInt :: IO Int
+readInt = readLn
+
 main :: IO ()
 main = do
     putStrLn "Game Configuration: How many colors?"
-    numColors <- readLn -- Should do error handling
+    numColors <- readInt-- Should do error handling
     putStrLn "Game Configuration: How many holes?"
-    numHoles <- readLn
+    numHoles <- readInt
     putStrLn $ "Config: " ++ (show (numColors::Int)) ++ " colors and "
         ++ (show (numHoles::Int)) ++ " holes"
     putStrLn "What is the solution code?"
-    solStr <- readLn
+    solStr <- readInt
     -- TODO: verify solStr length and valid symbols, convert to Code
     let sol = [1, 2, 3, 3] :: Code Int -- TODO: remove
     let initialGuess = [1, 1, 1, 1] :: Code Int -- TODO: try all
-    let codeset = generateCodeSet [1..numColors]
+    let codeset = generateCodeSet [1..numColors] numHoles
     -- TODO: step through and solve
     let num_turns_required = play_mastermind initialGuess sol 1 codeset codeset
     putStrLn $ "Solved in " ++ num_turns_required ++ " turns"
