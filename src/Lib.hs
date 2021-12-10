@@ -33,11 +33,7 @@ guessResult ans guess = (numBlack, numWhite)
 -}
 filterCodeSet :: Ord a => CodeSet a -> Code a -> ResponsePegs -> CodeSet a
 filterCodeSet set guess response =
-    filter (satisfies response . guessResult guess) set
-    where satisfies targetR relativeR =
-            fst relativeR >= fst targetR &&
-            tSum relativeR >= tSum targetR
-          tSum (a, b) = a + b
+    filter ((response ==) . guessResult guess) set
 
 generateNextGuess :: Ord a => CodeSet a -> ResponsePegs -> Code a
 generateNextGuess codeset resp = error ""
