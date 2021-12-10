@@ -2,6 +2,7 @@ module Main where
 
 import Lib
 
+{- Bind Int to readLn -}
 readInt :: IO Int
 readInt = readLn
 
