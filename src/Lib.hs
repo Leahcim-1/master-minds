@@ -1,5 +1,11 @@
 module Lib
     (
+        Code,
+        CodeSet,
+        generateCodeSet,
+        guessResult,
+        filterCodeSet,
+        generateNextGuess
     ) where
 import Data.List(nub)
 

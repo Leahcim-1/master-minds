@@ -14,5 +14,6 @@ main = do
     solStr <- readLn
     -- TODO: verify solStr length and valid symbols, convert to Code
     let sol = [1, 2, 3, 3] :: Code Int -- TODO: remove
-    let codeset = generateCodeSet [1..numColors]
+    let codeset = generateCodeSet [1..numColors] numHoles
+    putStr codeset
     -- TODO: step through and solve
