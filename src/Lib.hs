@@ -4,7 +4,7 @@ module Lib
 import Data.List(nub)
 
 
-type ResponsePegs = (Int, Int)
+type ResponsePegs = (Int, Int) -- (#black, #white)
 
 type Code a = [a]
 
