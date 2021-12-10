@@ -25,7 +25,7 @@ main = do
     num_turns_required <- play_mastermind initialGuess sol 1 codeset codeset
     putStrLn $ "Solved in " ++ (show num_turns_required) ++ " turns"
 
-play_mastermind :: Code a -> Code a -> Int -> CodeSet a -> CodeSet a -> IO Int
+play_mastermind :: (Ord a, Show a) => Code a -> Code a -> Int -> CodeSet a -> CodeSet a -> IO Int
 play_mastermind guess solution k fullSet possibleSet = do
     putStrLn $ "Guessing: " ++ (show guess)
     let response = guessResult guess solution
