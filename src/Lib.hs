@@ -8,7 +8,9 @@ type ResponsePegs = (Int, Int) -- (#black, #white)
 
 type Code a = [a]
 
-type CodeSet a = [Code a]
+type CodeSet a = [Code a] -- TODO: Use set instead of list for speed?
+
+type Possibility a = (Int, Bool, Code a) -- (Score, Invalid, Code)
 
 generateCodeSet :: (Eq a, Num a) => [a] -> a -> [[a]]
 generateCodeSet [] _ = error "Give me a non-empty list"
@@ -37,7 +39,3 @@ filterCodeSet set guess response =
 
 generateNextGuess :: Ord a => CodeSet a -> ResponsePegs -> Code a
 generateNextGuess codeset resp = error ""
-
-
-
-
