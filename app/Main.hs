@@ -22,7 +22,6 @@ main = do
     let initialGuess = [1, 1, 1, 1] :: Code Int -- TODO: try all
     putStrLn $ "DEBUG NOTE: Using solution " ++ (show sol) ++ " instead"
     let codeset = generateCodeSet [1..numColors] numHoles
-    -- TODO: step through and solve
     num_turns_required <- play_mastermind initialGuess sol 1 codeset codeset
     putStrLn $ "Solved in " ++ (show num_turns_required) ++ " turns"
 
