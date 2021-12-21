@@ -98,7 +98,7 @@ minimumPossibility p
         smallTieBreaker list    = minimumBy (\(_, _, codeA) (_, _, codeB) -> compareCode codeA codeB) list
 
 
-scoreGuess :: [Code] -> Code -> Possibility
+scoreGuess :: CodeSet -> Code -> Possibility
 scoreGuess possible code = (score, valid, code)
     where
         valid = code `elem` possible
@@ -164,9 +164,19 @@ playMastermindParMap guess solution k fullSet possibleSet = do
       playMastermindParMap nextGuess solution (k + 1) fullSet possibleSet'
 
 
+splitToChunks :: Int -> [a] -> [[a]]
+splitToChunks numChunks ls = chunk (length ls `quot` numChunks) ls
+  where
+    chunk _ [] = []
+    chunk n ls = let (as, bs) = splitAt n ls in
+      as : chunk n bs
 
-playMastermindStrategy ::  Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
-playMastermindStrategy guess solution k fullSet possibleSet = do
+bestFromChunk :: CodeSet -> CodeSet -> Possibility
+bestFromChunk possibleSet chunk = minimum $ map (scoreGuess possibleSet) chunk
+
+-- In chunks
+playMastermindStrategy ::  Int -> Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
+playMastermindStrategy numChunks guess solution k fullSet possibleSet = do
   putStrLn $ "Guessing: " ++ show guess
   let response = guessResult guess solution
   putStrLn $
@@ -179,6 +189,7 @@ playMastermindStrategy guess solution k fullSet possibleSet = do
       putStrLn $ "Solved: " ++ show (head possibleSet')
       return (k + 1)
     else do
-      let possibilities = map (scoreGuess possibleSet') fullSet
+      let chunks = splitToChunks numChunks fullSet -- TODO: Tune the number of chunks
+      let possibilities = map (bestFromChunk possibleSet') chunks `using` parList rseq
       let (_, _, nextGuess) = minimum possibilities
-      playMastermindStrategy nextGuess solution (k + 1) fullSet possibleSet'
+      playMastermindStrategy numChunks nextGuess solution (k + 1) fullSet possibleSet'

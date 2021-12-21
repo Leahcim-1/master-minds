@@ -30,10 +30,10 @@ main = do
     let sol = parseCode solStr
     if (length sol /= numHoles)
         || isJust (find (\x -> x > numColors || x < 0) sol) then
-            putStrLn $ "Invalid input code!"
+            putStrLn "Invalid input code!"
     else do
         let initialGuess = replicate numHoles 1 
         -- putStrLn $ "DEBUG NOTE: Using solution " ++ show sol ++ " instead"
         let codeset = generateCodeSet [1 .. numColors] numHoles
-        num_turns_required <- playMastermindStrategy initialGuess sol 1 codeset codeset
+        num_turns_required <- playMastermindStrategy 32 initialGuess sol 1 codeset codeset
         putStrLn $ "Solved in " ++ show num_turns_required ++ " turns"
