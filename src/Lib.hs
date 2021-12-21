@@ -6,13 +6,15 @@ module Lib
         filterCodeSet,
         generateNextGuess,
         compareCode,
-        minimumPossibility,
         scoreGuess,
-        playMastermind
+        playMastermind,
+        playMastermindParMap,
+        playMastermindStrategy
     ) where
 import Data.List (isInfixOf, minimumBy, nub)
 import Data.Function (on)
-
+import Control.Monad.Par (parMap, runPar)
+import Control.Parallel.Strategies(using, parList, rseq)
 import Debug.Trace (trace)
 
 
@@ -78,7 +80,7 @@ compareCode codeA@(x: xs) codeB@(y: ys)
 compareCode _ _ = error "Unmatch length of code"
 
 
-minimumPossibility :: [Possibility ] -> Possibility
+minimumPossibility :: [Possibility] -> Possibility
 minimumPossibility p
     | length minLists == 1      = head minLists
     | length validMinLists == 1 = head validMinLists
@@ -129,7 +131,51 @@ playMastermind guess solution k fullSet possibleSet = do
     else do
       let possibilities = map (scoreGuess possibleSet') fullSet
       -- TODOremove putStrLn $ "Debug (Possibilities): " ++ (show $ take 3 possibilities)
-      let nextGuess = getThird $ minimum possibilities
+      let (_, _, nextGuess) = minimum possibilities
       playMastermind nextGuess solution (k + 1) fullSet possibleSet'
-  where
-    getThird (_, _, x) = x
+
+
+
+playMastermindParMap ::  Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
+playMastermindParMap guess solution k fullSet possibleSet = do
+  -- TODOremove putStrLn $ "Debug (Remaining): " ++ (show $ length possibleSet)
+  -- TODOremove putStrLn $ "Debug (Remaining): " ++ (show $ take 5 possibleSet)
+  putStrLn $ "Guessing: " ++ show guess
+  let response = guessResult guess solution
+  putStrLn $
+    "Response: " ++ show (fst response) ++ " black and "
+      ++ show (snd response)
+      ++ " white"
+  let possibleSet' = filterCodeSet possibleSet guess response
+  -- TODOremove putStrLn $ "Debug (Response): " ++ (show response)
+  -- TODOremove putStrLn $ "Debug (Remaining New): " ++ (show $ length possibleSet')
+  -- TODOremove putStrLn $ "Debug (Remaining New): " ++ (show $ take 5 possibleSet')
+  if length possibleSet' == 1
+    then do
+      putStrLn $ "Solved: " ++ show (head possibleSet')
+      return (k + 1)
+    else do
+      let possibilities = runPar $ parMap (scoreGuess possibleSet') fullSet
+      -- TODOremove putStrLn $ "Debug (Possibilities): " ++ (show $ take 3 possibilities)
+      let (_, _, nextGuess) = minimum possibilities
+      playMastermindParMap nextGuess solution (k + 1) fullSet possibleSet'
+
+
+
+playMastermindStrategy ::  Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
+playMastermindStrategy guess solution k fullSet possibleSet = do
+  putStrLn $ "Guessing: " ++ show guess
+  let response = guessResult guess solution
+  putStrLn $
+    "Response: " ++ show (fst response) ++ " black and "
+      ++ show (snd response)
+      ++ " white"
+  let possibleSet' = filterCodeSet possibleSet guess response
+  if length possibleSet' == 1
+    then do
+      putStrLn $ "Solved: " ++ show (head possibleSet')
+      return (k + 1)
+    else do
+      let possibilities = map (scoreGuess possibleSet') fullSet
+      let (_, _, nextGuess) = minimum possibilities
+      playMastermindStrategy nextGuess solution (k + 1) fullSet possibleSet'

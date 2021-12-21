@@ -35,6 +35,7 @@ packages:
 # These entries can reference officially published versions as well as
 # forks / in-progress versions pinned to a git hash. For example:
 #
+
 extra-deps:
 - cairo-0.13.8.1@sha256:1938aaeb5d3504678d995774dfe870f6b66cbd43d336b692fa8779b23b2b67a9,4075
 - ghc-events-0.15.1@sha256:b4052e98694a6426f46fb6ebb250b06d6f68a14fa0b7ceb7c01282c6bb5fe47e,3757

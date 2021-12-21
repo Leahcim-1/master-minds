@@ -2,8 +2,8 @@
 .fls
 .fdb*
 *.log
-
-
+.DS_Store
+master-minds-exe
 
 dist
 dist-*

@@ -3,7 +3,7 @@ module Main where
 import Data.Function (on)
 import Data.List (isInfixOf, minimumBy)
 import Debug.Trace (trace)
-import Lib (generateCodeSet, intToCode, playMastermind)
+import Lib
 
 debug :: Show a => a -> a
 debug x = trace ("Debug: " ++ show x) x
@@ -34,5 +34,5 @@ main = do
     let initialGuess = replicate numHoles 1 
     -- putStrLn $ "DEBUG NOTE: Using solution " ++ show sol ++ " instead"
     let codeset = generateCodeSet [1 .. numColors] numHoles
-    num_turns_required <- playMastermind initialGuess sol 1 codeset codeset
+    num_turns_required <- playMastermindStrategy initialGuess sol 1 codeset codeset
     putStrLn $ "Solved in " ++ show num_turns_required ++ " turns"
