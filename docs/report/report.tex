@@ -70,6 +70,9 @@ Donald Knuth proposed the "Five-Guess Algorithm\footnote{Knuth, D. E. (1976). Th
 It is desirable to increase the computational difficulty of the problem so as to produce more reliable timing results. A program running over a longer amount of time will allow for recorded times to be more robust against random noise. As such, we increase the search space of the algorithm by extending the game to use $c$ colors and $h$ holes (previously, $c=6$ and $h=4$). As such, the universe of codes expands: $|S| = c^h$. For performance analyses in the remainder of this report, $c=10$ and $h=4$ are selected, resulting in $|S| = 10,000$.
 
 \section{Sequential Implementation}
+Segments of the sequential implementation are highlighted within this section. For a full code listing, see the Appendix. %TODO: Link
+Among other things, the appendix includes code allowing a human codemaker to play against the algorithm. 
+
 \subsection{Datatypes}
 \begin{minted}{haskell}
 type ResponsePegs = (Int, Int) -- (#black, #white)
@@ -85,6 +88,64 @@ A code is a collection of colored pegs. Each peg is an $Int$ which correponds to
 type Possibility = (Int, Bool, Code) -- (Score, Invalid, Code)
 \end{minted}
 A $Possibility$ is a candidate for the next guess. The score represents the size of $P$ after this guess in the worst case. The invalid flag tracks whether the code is a possible solution (in $P$) or not. Note that finding the minimum $Possibility$ will perform the next guess selection process including tiebreakers as described in \autoref{sec:algorithm}.
+
+\subsection{Generating a Response}
+\begin{minted}{haskell}
+guessResult :: Code -> Code -> ResponsePegs
+guessResult ans guess = (numBlack, numWhite)
+    where numBlack = length $ filter id $ zipWith (==) ans guess
+          numWhite = sum (map minCodeCount $ nub guess) - numBlack
+          minCodeCount v = min (count v ans) (count v guess)
+          count v ls = length $ filter (==v) ls
+\end{minted}
+The number of black pegs ($numBlack$) can be calculated by looking for pegs in the same position with the same color. For determining the number of white pegs ($numWhite$), each color is iterated over. The minimum number of times that color appears in both codes corresponds to the number of white pegs that color will generate (e.g., three green pegs in the guess and two green pegs in the solution means two white pegs are generated). However, the number of black pegs must be subtracted from this sum (as if a peg is both the right color and in the right position, it will generate a black peg \textit{instead} of a white peg).
+
+\subsection{Scoring a Candidate Guess}
+\begin{minted}{haskell}
+scoreGuess :: CodeSet -> Code -> Possibility
+scoreGuess possible code = (score, valid, code)
+    where
+        valid = code `elem` possible
+        allResponses = map (guessResult code) possible
+        score = getMaxCount allResponses
+        getMaxCount xs = maximum $ map snd $ getCounts xs
+        incCount o [] = [(o, 1)]
+        incCount o (x@(v, c) : xs)
+            | v == o = (v, c + 1) : xs
+            | otherwise = x : incCount o xs
+        getCounts xs = foldr incCount [] xs
+\end{minted}
+TODO: explain
+
+\subsection{Filtering the Possible Set}
+\begin{minted}{haskell}
+filterCodeSet :: CodeSet -> Code -> ResponsePegs -> CodeSet
+filterCodeSet set guess response =
+    filter ((response ==) . guessResult guess) set
+\end{minted}
+TODO: explain
+
+\subsection{Playing the Game}
+\begin{minted}{haskell}
+playMastermind ::  Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
+playMastermind guess solution k fullSet possibleSet = do
+  putStrLn $ "Guessing: " ++ show guess
+  let response = guessResult guess solution
+  putStrLn $
+    "Response: " ++ show (fst response) ++ " black and "
+      ++ show (snd response)
+      ++ " white"
+  let possibleSet' = filterCodeSet possibleSet guess response
+  if length possibleSet' == 1
+    then do
+      putStrLn $ "Solved: " ++ show (head possibleSet')
+      return (k + 1)
+    else do
+      let possibilities = map (scoreGuess possibleSet') fullSet
+      let (_, _, nextGuess) = minimum possibilities
+      playMastermind nextGuess solution (k + 1) fullSet possibleSet'
+\end{minted}
+TODO: explain
 
 \subsection{TODO -- other sections}
 \subsection{Performance}

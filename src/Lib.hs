@@ -48,7 +48,7 @@ generateCodeSet list hole
     | otherwise           = [ x:xs | x <- list, xs <- generateCodeSet list $ hole - 1]
 
 
-guessResult :: Code -> Code-> ResponsePegs
+guessResult :: Code -> Code -> ResponsePegs
 guessResult ans guess = (numBlack, numWhite)
     where numBlack = length $ filter id $ zipWith (==) ans guess
           numWhite = sum (map minCodeCount $ nub guess) - numBlack
@@ -58,15 +58,12 @@ guessResult ans guess = (numBlack, numWhite)
 {-
     Given the current codeset, a guess, and its corresponding response,
     return a new codeset with codes which are now impossible filtered out
-    (TODONOTE: Can use this both for keeping track of valid final solutions and also to
-    evaluate guesses given some possible response; use numBlack and first part of numWhite above to
-    do this filtering)
 -}
 filterCodeSet :: CodeSet -> Code -> ResponsePegs -> CodeSet
 filterCodeSet set guess response =
     filter ((response ==) . guessResult guess) set
 
-generateNextGuess :: CodeSet -> ResponsePegs -> Code
+generateNextGuess :: CodeSet -> ResponsePegs -> Code -- TODOremove
 generateNextGuess codeset resp = error ""
 
 
@@ -83,7 +80,7 @@ compareCode codeA@(x: xs) codeB@(y: ys)
 compareCode _ _ = error "Unmatch length of code"
 
 
-minimumPossibility :: [Possibility] -> Possibility
+minimumPossibility :: [Possibility] -> Possibility -- TODO: remove (and comparator above)
 minimumPossibility p
     | length minLists == 1      = head minLists
     | length validMinLists == 1 = head validMinLists
@@ -105,7 +102,6 @@ scoreGuess possible code = (score, valid, code)
         allResponses = map (guessResult code) possible
         score = getMaxCount allResponses
         getMaxCount xs = maximum $ map snd $ getCounts xs
-        -- compareSnd a b = compare (snd a) (snd b)
         incCount o [] = [(o, 1)]
         incCount o (x@(v, c) : xs)
             | v == o = (v, c + 1) : xs
