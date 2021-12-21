@@ -1,6 +1,6 @@
 module Lib
     (
-        intToCode,
+        parseCode,
         generateCodeSet,
         guessResult,
         filterCodeSet,
@@ -31,12 +31,15 @@ type CodeSet = [Code] -- TODO: Use set instead of list for speed?
 type Possibility = (Int, Bool, Code) -- (Score, Invalid, Code)
 
 
-intToCode :: Int -> Code
+intToCode :: Int -> Code -- TODOremove
 intToCode x = reverse $ intToCode' x
     where intToCode' x'   
             | x' == 0    = []
             | otherwise = r : intToCode' q
             where (q, r) = x' `divMod` 10
+
+parseCode :: String -> Code
+parseCode str = (map read $ words str) :: [Int]
 
 generateCodeSet :: (Eq a, Num a) => [a] -> a -> [[a]]
 generateCodeSet [] _ = error "Give me a non-empty list"

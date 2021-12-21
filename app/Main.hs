@@ -1,9 +1,10 @@
 module Main where
 
 import Data.Function (on)
-import Data.List (isInfixOf, minimumBy)
+import Data.List (isInfixOf, minimumBy, find)
 import Debug.Trace (trace)
 import Lib
+import Data.Maybe (isJust)
 
 debug :: Show a => a -> a
 debug x = trace ("Debug: " ++ show x) x
@@ -11,10 +12,6 @@ debug x = trace ("Debug: " ++ show x) x
 {- Bind Int to readLn -}
 readInt :: IO Int
 readInt = readLn
-
-{- Bind String to readLn -}
-readStr :: IO String
-readStr = readLn
 
 main :: IO ()
 main = do
@@ -27,12 +24,16 @@ main = do
         ++ show (numHoles :: Int)
         ++ " holes"
     putStrLn "What is the solution code?"
-    solStr <- readInt
+    solStr <- getLine
     -- TODO: verify solStr length and valid symbols, convert to Code
     -- let sol = [1, 2, 1, 1]
-    let sol = intToCode solStr
-    let initialGuess = replicate numHoles 1 
-    -- putStrLn $ "DEBUG NOTE: Using solution " ++ show sol ++ " instead"
-    let codeset = generateCodeSet [1 .. numColors] numHoles
-    num_turns_required <- playMastermindStrategy initialGuess sol 1 codeset codeset
-    putStrLn $ "Solved in " ++ show num_turns_required ++ " turns"
+    let sol = parseCode solStr
+    if (length sol /= numHoles)
+        || isJust (find (\x -> x > numColors || x < 0) sol) then
+            putStrLn $ "Invalid input code!"
+    else do
+        let initialGuess = replicate numHoles 1 
+        -- putStrLn $ "DEBUG NOTE: Using solution " ++ show sol ++ " instead"
+        let codeset = generateCodeSet [1 .. numColors] numHoles
+        num_turns_required <- playMastermindStrategy initialGuess sol 1 codeset codeset
+        putStrLn $ "Solved in " ++ show num_turns_required ++ " turns"
