@@ -65,7 +65,7 @@ Donald Knuth proposed the "Five-Guess Algorithm\footnote{Knuth, D. E. (1976). Th
 \end{enumerate}
 
 \section{Extension}
-TODO: tuning config
+It is desirable to increase the computational difficulty of the problem so as to produce more reliable timing results. A program running over a longer amount of time will allow for recorded times to be more robust against random noise. As such, we increase the search space of the algorithm by extending the game to use $c$ colors and $h$ holes (previously, $c=6$ and $h=4$). As such, the universe of codes expands: $|S| = c^h$. For performance analyses in the remainder of this report, $c=10$ and $h=4$ are selected, resulting in $|S| = 10,000$.
 
 \section{Sequential Implementation}
 \subsection{Datatypes}
