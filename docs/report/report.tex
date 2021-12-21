@@ -1,18 +1,18 @@
 \documentclass{article}
 \usepackage{listings}
+\usepackage{xcolor}
 \usepackage{amsmath}
 \usepackage{blindtext}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage[a4paper, margin=1in]{geometry}
+\usepackage{minted}
 
-\lstset{
-	numbers=left,                                        
- 	frame=none,                                         
-	tabsize=4,
-	keywordstyle=\color{blue},
-}
+\renewcommand{\itemautorefname}{Step}
+\renewcommand{\sectionautorefname}{Section}
+
 \title{Master Minds: The Report}
 \author{
 	Xinhao Su\\
@@ -47,21 +47,23 @@ A photo of a physical game board is shown below, albeit with slightly different 
 This game can be formalized as The Mastermind Problem. Given a set of guesses and their corresponding feedback, can we determine what solutions code(s) would produce such behavior? This is effectively a multi-dimensional search problem which has been proven to be NP-Complete\footnote{Stuckman, J., \& Zhang, G. Q. (2005). Mastermind is NP-complete. \textit{arXiv preprint cs/0512049}.}.
 
 \section{Algorithm}
+\label{sec:algorithm}
 Donald Knuth proposed the "Five-Guess Algorithm\footnote{Knuth, D. E. (1976). The computer as master mind. \textit{Journal of Recreational Mathematics, 9}(1), 1-6.}", which was named as such because it will always determine the correct code using only at most five of the eight allowable guesses. The algorithm works as follows:
 \begin{enumerate}[label=\textbf{S.\arabic*}]
 	\item Generate all possible codes. Call this $S$, representing the universe of possible codes. Here, $|S| = 6^4 = 1296$.
 	\item Create a set of possible solutions $P$. At the start, $P=S$.
 	\item Choose an initial guess $g_0$. This can be hard-coded or randomly selected from $P$, as no information about the solution code has been obtained yet.
-	\item \label{algo_repeat} Play guess $g_0$ and obtain a response $r$ from the codemaker.
-	\item Filter $P$ to remove all codes which could not possibly be the solution based on this response.
-		\begin{enumerate}
+	\item \label{itm:algo_repeat} Play guess $g_0$ and obtain a response $r$ from the codemaker.
+	\item \label{itm:algo_filter} Filter $P$ to remove all codes which could not possibly be the solution based on this response.
+		\begin{itemize}
 		\item For a code to possibly be the actual solution, its response to $g_0$ must also be exactly $r$.
-		\end{enumerate}
+		\end{itemize}
 	\item Select the best next guess $g_1$ from $S$ using a minmax algorithm: minimize the maximum possible number of remaining codes in $P$ after this guess.
-		\begin{enumerate}
-		\item The maximum possible number of remaining codes in $P$ after a guess $g_2$ can be calculated by determining the response of each code in $P$ to $g_2$. The response which appears with the greatest frequency is the worst case (resulting in the largest $P$ after filtering.
-		\end{enumerate}
-	\item Repeat from \ref{algo_repeat} with guess $g_1$. Repeat until the solution is found ($|P|=1$).
+		\begin{itemize}
+		\item The maximum possible number of remaining codes in $P$ after a guess $g_2$ can be calculated by determining the response of each code in $P$ to $g_2$. The response which appears with the greatest frequency is the worst case (resulting in the largest $P$ after filtering).
+		\item In the case of a tie between codes, prefer a code which is still a possible solution, i.e. it is in $P$. As a final tiebreaker, select the numerically lowest code.
+		\end{itemize}
+	\item Repeat from \autoref{itm:algo_repeat} with guess $g_1$. Repeat until the solution is found ($|P|=1$).
 \end{enumerate}
 
 \section{Extension}
@@ -69,6 +71,21 @@ It is desirable to increase the computational difficulty of the problem so as to
 
 \section{Sequential Implementation}
 \subsection{Datatypes}
+\begin{minted}{haskell}
+type ResponsePegs = (Int, Int) -- (#black, #white)
+\end{minted}
+The response providing feedback about a code is presented as a pair consisting of the number of black pegs and number of white pegs in the response.
+
+\begin{minted}{haskell}
+type Code = [Int]
+\end{minted}
+A code is a collection of colored pegs. Each peg is an $Int$ which correponds to a color in set $[1..c]$.
+
+\begin{minted}{haskell}
+type Possibility = (Int, Bool, Code) -- (Score, Invalid, Code)
+\end{minted}
+A $Possibility$ is a candidate for the next guess. The score represents the size of $P$ after this guess in the worst case. The invalid flag tracks whether the code is a possible solution (in $P$) or not. Note that finding the minimum $Possibility$ will perform the next guess selection process including tiebreakers as described in \autoref{sec:algorithm}.
+
 \subsection{TODO -- other sections}
 \subsection{Performance}
 
@@ -83,5 +100,6 @@ TODO: parMap each code comparison (too many sparks); then parMap each candidate 
 \section{References}
 
 \section{Appendix: Code}
+% https://tex.stackexchange.com/questions/116595/highlighting-haskell-listings-in-large-tex-document
 
 \end{document}
