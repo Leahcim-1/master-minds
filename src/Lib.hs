@@ -22,6 +22,7 @@ debug :: Show a => a -> a
 debug x = trace ("Debug: " ++ show x) x
 
 
+-- TODO: we can just import this from Data.List
 foldl' f z []     = z
 foldl' f z (x:xs) = let z' = z `f` x 
                     in seq z' $ foldl' f z' xs
