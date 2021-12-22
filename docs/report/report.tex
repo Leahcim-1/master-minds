@@ -149,18 +149,25 @@ TODO: explain
 
 \subsection{TODO -- other sections}
 \subsection{Performance}
+\subsection{Fixing that Bump}
+% https://stackoverflow.com/questions/40948153/find-min-elements-index-of-a-large-list-in-haskell
+% This will fix it: note that we will have to get timings for all the combinations again after this if it has a substantial effect
 
 \section{Parallelization}
 TODO: what we tried for parallelization, results, etc.
 \subsection{parMap}
 TODO: parMap each code comparison (too many sparks); then parMap each candidate code
+TODO: I think we should try to fix the bug or leave it out for the one that ran 8 CPUs but only on one of them. it's also just parMap so don't expect it to be very different.
+TODO: table showing numthreads vs. performance, line graph
 \subsection{Chunks}
+TODO: chunks, table showing numchunks vs. performance, line graph, 2 or 3 screenshots showing load balancing improving as number of chunks increases
+
 
 \section{Conclusion}
+TODO: bar graph showing different methods, discussion of which one was fastest
 
 \section{References}
 
 \section{Appendix: Code}
-% https://tex.stackexchange.com/questions/116595/highlighting-haskell-listings-in-large-tex-document
 
 \end{document}
