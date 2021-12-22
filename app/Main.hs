@@ -29,7 +29,7 @@ main = do
     -- let sol = [1, 2, 1, 1]
     let sol = parseCode solStr
     if (length sol /= numHoles)
-        || isJust (find (\x -> x > numColors || x < 0) sol) then
+        || isJust (find (\x -> x > numColors || x < 0) sol) then -- TODO: Replace isJust with "any" fold
             putStrLn "Invalid input code!"
     else do
         let initialGuess = replicate numHoles 1 
