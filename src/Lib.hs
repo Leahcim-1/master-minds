@@ -119,8 +119,8 @@ bestFromChunk :: CodeSet -> CodeSet -> Possibility
 bestFromChunk possibleSet chunk = foldl1' min $ map (scoreGuess possibleSet) chunk
 
 -- In chunks
-playMastermindStrategy ::  Int -> Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
-playMastermindStrategy numChunks guess solution k fullSet possibleSet = do
+playMastermindChunkStrategy ::  Int -> Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
+playMastermindChunkStrategy numChunks guess solution k fullSet possibleSet = do
   putStrLn $ "Guessing: " ++ show guess
   let response@(blk, wht) = guessResult guess solution
   putStrLn $
@@ -134,4 +134,22 @@ playMastermindStrategy numChunks guess solution k fullSet possibleSet = do
     let chunks = splitToChunks numChunks fullSet -- TODO: Tune the number of chunks
     let possibilities = map (bestFromChunk possibleSet') chunks `using` parList rseq
     let (_, _, nextGuess) = foldl1' min possibilities
-    playMastermindStrategy numChunks nextGuess solution (k + 1) fullSet possibleSet'
+    playMastermindChunkStrategy numChunks nextGuess solution (k + 1) fullSet possibleSet'
+
+-- In chunks which get smaller on later turns
+playMastermindShrinkingChunks ::  Int -> Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
+playMastermindShrinkingChunks numChunks guess solution k fullSet possibleSet = do
+  putStrLn $ "Guessing: " ++ show guess
+  let response@(blk, wht) = guessResult guess solution
+  putStrLn $
+    "Response: " ++ show blk ++ " black and "
+      ++ show wht ++ " white"
+  if blk == length guess then do
+    putStrLn $ "Solved: " ++ show guess
+    return k
+  else do
+    let possibleSet' = filterCodeSet possibleSet guess response
+    let chunks = splitToChunks numChunks fullSet -- TODO: Tune the number of chunks
+    let possibilities = map (bestFromChunk possibleSet') chunks `using` parList rseq
+    let (_, _, nextGuess) = foldl1' min possibilities
+    playMastermindShrinkingChunks (numChunks `div` 2) nextGuess solution (k + 1) fullSet possibleSet'
