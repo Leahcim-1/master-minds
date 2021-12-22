@@ -422,26 +422,26 @@ main = do
 
 \section{Appendix: Dependencies, Compiler Options, and Executable Options}
 \begin{minted}{yaml}
-dependencies: 
-- master-minds
-- monad-par >= 0.3.5
-- parallel >= 3.2.2.0
+    dependencies: 
+    - master-minds
+    - monad-par >= 0.3.5
+    - parallel >= 3.2.2.0
 \end{minted}
 
 \begin{minted}{yaml}
-ghc-options:
-- -O2
-- -threaded
-- -rtsopts
-- -eventlog
+    ghc-options:
+    - -O2
+    - -threaded
+    - -rtsopts
+    - -eventlog
 \end{minted}
 
 \begin{minted}{bash}
-./master-minds -f +RTS -N8 -ls -s <<-EOF
-10
-4
-8 7 6 5
-EOF
+    ./master-minds -f +RTS -N8 -ls -s <<-EOF
+    10
+    4
+    8 7 6 5
+    EOF
 \end{minted}
 
 
