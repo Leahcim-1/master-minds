@@ -35,5 +35,5 @@ main = do
         let initialGuess = replicate numHoles 1 
         -- putStrLn $ "DEBUG NOTE: Using solution " ++ show sol ++ " instead"
         let codeset = generateCodeSet [1 .. numColors] numHoles
-        num_turns_required <- playMastermindStrategy 512 initialGuess sol 1 codeset codeset
+        num_turns_required <- playMastermind initialGuess sol 1 codeset codeset
         putStrLn $ "Solved in " ++ show num_turns_required ++ " turns"
