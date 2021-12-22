@@ -70,8 +70,7 @@ Donald Knuth proposed the "Five-Guess Algorithm\footnote{Knuth, D. E. (1976). Th
 It is desirable to increase the computational difficulty of the problem so as to produce more reliable timing results. A program running over a longer amount of time will allow for recorded times to be more robust against random noise. As such, we increase the search space of the algorithm by extending the game to use $c$ colors and $h$ holes (previously, $c=6$ and $h=4$). As such, the universe of codes expands: $|S| = c^h$. For performance analyses in the remainder of this report, $c=10$ and $h=4$ are selected, resulting in $|S| = 10,000$.
 
 \section{Sequential Implementation}
-Segments of the sequential implementation are highlighted within this section. For a full code listing, see the Appendix. %TODO: Link
-Among other things, the appendix includes code allowing a human codemaker to play against the algorithm. 
+Segments of the sequential implementation are highlighted within this section. For a full code listing, see \nameref{sec:code}. Among other things, the appendix includes code allowing a human codemaker to play against the algorithm. 
 
 \subsection{Datatypes}
 \begin{minted}{haskell}
@@ -115,7 +114,7 @@ scoreGuess possible code = (score, valid, code)
             | otherwise = x : incCount o xs
         getCounts xs = foldr incCount [] xs
 \end{minted}
-TODO: explain
+Given the set of remaining possibilities $P$ ($possible$) and some candidate guess $code$, the objective is to assign a score to the code representing the maximum size of $P$ after this guess in the worst case, as described in \autoref{sec:algorithm}. The $guessResult$ function is used to determine what the codemaker would respond to $g$ in the case that each potential solution was the actual solution. The $getCounts$ function is used to count how many times each response occurs. The maximum count, determined by $getMaxCount$, corresponds to the score.
 
 \subsection{Filtering the Possible Set}
 \begin{minted}{haskell}
@@ -123,43 +122,70 @@ filterCodeSet :: CodeSet -> Code -> ResponsePegs -> CodeSet
 filterCodeSet set guess response =
     filter ((response ==) . guessResult guess) set
 \end{minted}
-TODO: explain
+Once a guess is made and a response is received from the codemaker, some of the possible solutions in $P$ can be ruled out. Specifically, solutions which produce a response to the guess different from the one received cannot be the actual solution.
 
 \subsection{Playing the Game}
 \begin{minted}{haskell}
 playMastermind ::  Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
 playMastermind guess solution k fullSet possibleSet = do
   putStrLn $ "Guessing: " ++ show guess
-  let response = guessResult guess solution
+  let response@(blk, wht) = guessResult guess solution
   putStrLn $
-    "Response: " ++ show (fst response) ++ " black and "
-      ++ show (snd response)
-      ++ " white"
-  let possibleSet' = filterCodeSet possibleSet guess response
-  if length possibleSet' == 1
-    then do
-      putStrLn $ "Solved: " ++ show (head possibleSet')
-      return (k + 1)
-    else do
-      let possibilities = map (scoreGuess possibleSet') fullSet
-      let (_, _, nextGuess) = minimum possibilities
-      playMastermind nextGuess solution (k + 1) fullSet possibleSet'
+    "Response: " ++ show blk ++ " black and "
+      ++ show wht ++ " white"
+  if blk == length guess then do
+    putStrLn $ "Solved: " ++ show guess
+    return k
+  else do
+    let possibleSet' = filterCodeSet possibleSet guess response
+    let possibilities = map (scoreGuess possibleSet') fullSet
+    let (_, _, nextGuess) = minimum possibilities
+    playMastermind nextGuess solution (k + 1) fullSet possibleSet'
 \end{minted}
-TODO: explain
+Each turn, a guess is played by the algorithm (codebreaker) and a response received from the codemaker. If a number of black pegs equal to the number of holes is returned, the code has been found! In some cases, the algorithm will luckily guess the correct solution without having to reduce $|P|$ to $1$. Otherwise, $P$ is filtered using the response and then the universe of possible codes $S$ is searched for the best next guess.
 
 \subsection{Performance}
-TODO: show performance with the two codes
+It is important to keep in mind that the performance of the algorithm is dependent on both the initial guess and the solution. For example, consider the trivial case where the initial guess is equal to the solution. The algorithm will succeed without having to search $S$ at all. For this report, performance was analyzed on a 2018 MacBook Pro with 8 logical cores. The game was configured to use 10 colors and 4 holes. A shell script was used to feed input to the program, removing the need for human interaction. Using an initial guess of $1111$ and a solution of $2613$, the algorithm succeeded in 14 seconds (note that timings are rounded to the nearest second to show proper significance, as timings vary slightly between equivalent program executions). Using a solution of $8765$ instead results in a 50 second execution time as shown below.
+% TODO: image of 8765 before parallelization threadscope -- make sure this is "below" as explained in text or update text with figure number
 \subsection{Fixing that Bump}
-% https://stackoverflow.com/questions/40948153/find-min-elements-index-of-a-large-list-in-haskell
-% This will fix it: note that we will have to get timings for all the combinations again after this if it has a substantial effect
+One may notice that towards the end of the execution above, a sudden increase in activity occurs. Analysis using Threadscope shows that this is due to stack overflows, causing the computation to stop and start again multiple times. It was determined that this was largely because of the \mintinline{haskell}{minimum} and \mintinline{haskell}{maximum} functions which are evaluated on lists of size $c^h$. This necessitates the construction and evalulation of a large redex, causing a stack overflow\footnote{https://stackoverflow.com/questions/40948153/find-min-elements-index-of-a-large-list-in-haskell}. To avoid this behavior, \mintinline{haskell}{minimum} was replaced with \mintinline{haskell}{foldl1' min}. A corresponding change was made replacing \mintinline{haskell}{maximum} with \mintinline{haskell}{foldl1' max}. Doing so alleviates the stack overflow issue (although an activity increase at the end still occurs due to computation).
 
 \section{Parallelization}
-TODO: what we tried for parallelization, results, etc.
-\subsection{parMap}
-TODO: parMap each code comparison (too many sparks); then parMap each candidate code
-TODO: I think we should try to fix the bug or leave it out for the one that ran 8 CPUs but only on one of them. it's also just parMap so don't expect it to be very different.
-TODO: table showing numthreads vs. performance, line graph
+A variety of techniques were applied to parallelize the algorithm. The most successful attempts are discussed within this section.
+\subsection{Control.Monad.Par(parMap)}
+\begin{minted}{haskell}
+playMastermindParMap ::  Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
+playMastermindParMap guess solution k fullSet possibleSet = do
+  putStrLn $ "Guessing: " ++ show guess
+  let response@(blk, wht) = guessResult guess solution
+  putStrLn $
+    "Response: " ++ show blk ++ " black and "
+      ++ show wht ++ " white"
+  if blk == length guess then do
+    putStrLn $ "Solved: " ++ show guess
+    return k
+  else do
+    let possibleSet' = filterCodeSet possibleSet guess response
+    let possibilities = runPar $ parMap (scoreGuess possibleSet') fullSet
+    let (_, _, nextGuess) = minimum possibilities
+    playMastermindParMap nextGuess solution (k + 1) fullSet possibleSet'
+\end{minted}
+The main change here is that the $map$ over candidate guesses has been replaced with $parMap$. The result is a 21 second runtime on 8 cores, representing a performance improvement factor of 2.38.
+% TODO: image from "First parMap attempt"
+Using different numbers of cores affected this performance, as shown in the graph below. As seen, increasing from 1 to 4 cores caused a significant performance improvement. Increasing past 4 cores results in minimal further improvement. This is likely because our algorithm is largely CPU-bound and the machine only has 4 physical cores mapped to 8 logical cores.
+% TODO: line graph of number of cores vs. performance improvement
+
+At attempt was also made at using $parMap$ within the $scoreGuess$ function to parallelize the evaluation of each guess-solution pair. However, the result was extremely slow performance and a 1.2 GB event log. Evidently, too many sparks were created.
+%TODO: show event log
+%TODO: we should try to fix the bug or leave it out for the one that ran 8 CPUs but only on one of them. it's also just parMap so don't expect it to be very different.
+
+Even with the successful parallelization above, a large number of sparks are created.
+
 \subsection{Chunks}
+Thus, we designed a parallelization strategy which splits the candidate codes into $n$ chunks and then parallelizes computation over those chunks.
+% TODO discuss chunking code and algorithm improvement too
+% TODO discuss improvement as number of chunks increases
+% TODO load balancing
 TODO: chunks, table showing numchunks vs. performance, line graph, 2 or 3 screenshots showing load balancing improving as number of chunks increases
 
 
@@ -169,5 +195,7 @@ TODO: bar graph showing different methods, discussion of which one was fastest
 \section{References}
 
 \section{Appendix: Code}
+\label{sec:code}
+Test
 
 \end{document}
