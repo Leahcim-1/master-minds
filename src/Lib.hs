@@ -176,7 +176,7 @@ splitToChunks numChunks ls = chunk (length ls `quot` numChunks) ls
       as : chunk n bs
 
 bestFromChunk :: CodeSet -> CodeSet -> Possibility
-bestFromChunk possibleSet chunk = foldr1 min $ map (scoreGuess possibleSet) chunk
+bestFromChunk possibleSet chunk = foldl1' min $ map (scoreGuess possibleSet) chunk
 
 -- In chunks
 playMastermindStrategy ::  Int -> Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
