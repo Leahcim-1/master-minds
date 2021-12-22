@@ -213,9 +213,9 @@ Increasing the number of chunks allows for better load balancing, increasing per
 Increasing $n$ past 512 results in minimal performance gains, as the load is already evenly balanced.
 % TODO graph showing performance vs. number of chunks
 
-It is also important to consider that on later turns, the possible solution set $P$ has shrunk. Thus, fewer chunks should be necessary for proper load balancing. An implementation was tested with various $n$ which split computation into $\frac{n}{2^k}$ chunks on turn $k$, however performance dim
+It is also interesting to consider that on later turns, the possible solution set $P$ has shrunk. Thus, fewer chunks should be necessary for proper load balancing. An implementation was tested with various $n$ which split computation into $\frac{n}{2^k}$ chunks on turn $k$, however performance was not improved. Scaling factors of $1.2$ and $1.5$ were also tried. Again, there was no improvement over using the constant chunking.
 
-% TODO discuss results of shrinking chunk strategy
+% TODO do we need to discuss these shrinking chunk results quantitatively?
 
 \section{Conclusion}
 % TODO bar graph showing best times from each method
