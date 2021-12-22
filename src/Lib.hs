@@ -26,7 +26,7 @@ type ResponsePegs = (Int, Int) -- (#black, #white)
 
 type Code = [Int]
 
-type CodeSet = [Code] -- TODO: Use set instead of list for speed?
+type CodeSet = [Code]
 
 type Possibility = (Int, Bool, Code) -- (Score, Invalid, Code)
 
@@ -135,7 +135,7 @@ playMastermindChunkStrategy numChunks guess solution k fullSet possibleSet = do
     return k
   else do
     let possibleSet' = filterCodeSet possibleSet guess response
-    let chunks = splitToChunks numChunks fullSet -- TODO: Tune the number of chunks
+    let chunks = splitToChunks numChunks fullSet
     let possibilities = map (bestFromChunk possibleSet') chunks `using` parList rseq
     let (_, _, nextGuess) = foldl1' min possibilities
     playMastermindChunkStrategy numChunks nextGuess solution (k + 1) fullSet possibleSet'
@@ -155,7 +155,7 @@ playMastermindShrinkingChunks numChunks guess solution k fullSet possibleSet = d
     return k
   else do
     let possibleSet' = filterCodeSet possibleSet guess response
-    let chunks = splitToChunks numChunks fullSet -- TODO: Tune the number of chunks
+    let chunks = splitToChunks numChunks fullSet
     let possibilities = map (bestFromChunk possibleSet') chunks `using` parList rseq
     let (_, _, nextGuess) = foldl1' min possibilities
     playMastermindShrinkingChunks (debug (optimizeChuck numChunks 1.6)) nextGuess solution (k + 1) fullSet possibleSet'
@@ -175,7 +175,7 @@ playMastermindGrowingChunks numChunks guess solution k fullSet possibleSet = do
     return k
   else do
     let possibleSet' = filterCodeSet possibleSet guess response
-    let chunks = splitToChunks numChunks fullSet -- TODO: Tune the number of chunks
+    let chunks = splitToChunks numChunks fullSet
     let possibilities = map (bestFromChunk possibleSet') chunks `using` parList rseq
     let (_, _, nextGuess) = foldl1' min possibilities
     playMastermindGrowingChunks (numChunks * 2) nextGuess solution (k + 1) fullSet possibleSet'
