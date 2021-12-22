@@ -158,7 +158,7 @@ playMastermindShrinkingChunks numChunks guess solution k fullSet possibleSet = d
     let chunks = splitToChunks numChunks fullSet -- TODO: Tune the number of chunks
     let possibilities = map (bestFromChunk possibleSet') chunks `using` parList rseq
     let (_, _, nextGuess) = foldl1' min possibilities
-    playMastermindShrinkingChunks (optimizeChuck numChunks 1.2) nextGuess solution (k + 1) fullSet possibleSet'
+    playMastermindShrinkingChunks (debug (optimizeChuck numChunks 1.6)) nextGuess solution (k + 1) fullSet possibleSet'
 
 
 
