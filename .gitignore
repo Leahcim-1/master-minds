@@ -30,3 +30,4 @@ cabal.project.local~
 .ghc.environment.*
 *.pygtex
 *.pygstyle
+submission/code/master-minds.cabal
