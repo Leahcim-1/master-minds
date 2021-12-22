@@ -105,7 +105,7 @@ minimumPossibility p
 
 
 scoreGuess :: CodeSet -> Code -> Possibility
-scoreGuess possible code = (score, valid, code)
+scoreGuess possible code = (score, not valid, code)
     where
         valid = code `elem` possible
         allResponses = map (guessResult code) possible
@@ -131,6 +131,7 @@ playMastermind guess solution k fullSet possibleSet = do
   else do
     let possibleSet' = filterCodeSet possibleSet guess response
     let possibilities = map (scoreGuess possibleSet') fullSet
+    putStrLn $ show possibilities
     let (_, _, nextGuess) = minimum possibilities
     playMastermind nextGuess solution (k + 1) fullSet possibleSet'
 
