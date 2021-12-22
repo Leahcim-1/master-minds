@@ -22,6 +22,14 @@ debug :: Show a => a -> a
 debug x = trace ("Debug: " ++ show x) x
 
 
+foldl' f z []     = z
+foldl' f z (x:xs) = let z' = z `f` x 
+                    in seq z' $ foldl' f z' xs
+
+foldl1' :: (a -> a -> a) -> [a] -> a
+foldl1' f (x:xs) = foldl' f x xs
+
+
 type ResponsePegs = (Int, Int) -- (#black, #white)
 
 type Code = [Int]
@@ -101,7 +109,7 @@ scoreGuess possible code = (score, valid, code)
         valid = code `elem` possible
         allResponses = map (guessResult code) possible
         score = getMaxCount allResponses
-        getMaxCount xs = maximum $ map snd $ getCounts xs
+        getMaxCount xs = foldl1' max $ map snd $ getCounts xs
         incCount o [] = [(o, 1)]
         incCount o (x@(v, c) : xs)
             | v == o = (v, c + 1) : xs
@@ -168,7 +176,7 @@ splitToChunks numChunks ls = chunk (length ls `quot` numChunks) ls
       as : chunk n bs
 
 bestFromChunk :: CodeSet -> CodeSet -> Possibility
-bestFromChunk possibleSet chunk = minimum $ map (scoreGuess possibleSet) chunk
+bestFromChunk possibleSet chunk = foldr1 min $ map (scoreGuess possibleSet) chunk
 
 -- In chunks
 playMastermindStrategy ::  Int -> Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
@@ -187,5 +195,5 @@ playMastermindStrategy numChunks guess solution k fullSet possibleSet = do
     else do
       let chunks = splitToChunks numChunks fullSet -- TODO: Tune the number of chunks
       let possibilities = map (bestFromChunk possibleSet') chunks `using` parList rseq
-      let (_, _, nextGuess) = minimum possibilities
+      let (_, _, nextGuess) = foldl1' min possibilities
       playMastermindStrategy numChunks nextGuess solution (k + 1) fullSet possibleSet'
