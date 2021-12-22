@@ -394,15 +394,20 @@ playMastermindChunkStrategy numChunks guess solution k fullSet possibleSet = do
 {-
  - Entry Function @ app/Main.hs
 -}
-readInt :: IO Int
-readInt = readLn
+readPosInt :: IO Int
+readPosInt = do
+    val <- readLn
+    if val > 0 then
+        return val
+    else
+        error "Input must be a positive integer"
 
 main :: IO ()
 main = do
     putStrLn "Game Configuration: How many colors?"
-    numColors <- readInt
+    numColors <- readPosInt
     putStrLn "Game Configuration: How many holes?"
-    numHoles <- readInt
+    numHoles <- readPosInt
     putStrLn $
         "Config: " ++ show (numColors :: Int) ++ " colors and "
         ++ show (numHoles :: Int)
@@ -411,7 +416,7 @@ main = do
     solStr <- getLine
     let sol = parseCode solStr
     if (length sol /= numHoles)
-        || isJust (find (\x -> x > numColors || x < 0) sol) then 
+        || any (\x -> x > numColors || x <= 0) sol then
             putStrLn "Invalid input code!"
     else do
         let initialGuess = replicate numHoles 1 
