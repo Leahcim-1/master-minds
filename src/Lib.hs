@@ -11,7 +11,7 @@ module Lib
         playMastermindParMap,
         playMastermindStrategy
     ) where
-import Data.List (isInfixOf, minimumBy, nub)
+import Data.List (isInfixOf, minimumBy, nub, foldl1')
 import Data.Function (on)
 import Control.Monad.Par (parMap, runPar)
 import Control.Parallel.Strategies(using, parList, rseq)
@@ -22,15 +22,6 @@ debug :: Show a => a -> a
 debug x = trace ("Debug: " ++ show x) x
 
 
--- TODO: we can just import this from Data.List
-foldl' f z []     = z
-foldl' f z (x:xs) = let z' = z `f` x 
-                    in seq z' $ foldl' f z' xs
-
-foldl1' :: (a -> a -> a) -> [a] -> a
-foldl1' f (x:xs) = foldl' f x xs
-
-
 type ResponsePegs = (Int, Int) -- (#black, #white)
 
 type Code = [Int]
@@ -39,13 +30,6 @@ type CodeSet = [Code] -- TODO: Use set instead of list for speed?
 
 type Possibility = (Int, Bool, Code) -- (Score, Invalid, Code)
 
-
-intToCode :: Int -> Code -- TODOremove
-intToCode x = reverse $ intToCode' x
-    where intToCode' x'   
-            | x' == 0    = []
-            | otherwise = r : intToCode' q
-            where (q, r) = x' `divMod` 10
 
 parseCode :: String -> Code
 parseCode str = (map read $ words str) :: [Int]
@@ -72,37 +56,6 @@ filterCodeSet :: CodeSet -> Code -> ResponsePegs -> CodeSet
 filterCodeSet set guess response =
     filter ((response ==) . guessResult guess) set
 
-generateNextGuess :: CodeSet -> ResponsePegs -> Code -- TODOremove
-generateNextGuess codeset resp = error ""
-
-
-compareCode :: Code -> Code -> Ordering
-compareCode [] [] = EQ
-compareCode [x] [y]
-    | x < y     = LT
-    | x > y     = GT
-    | x == y    = EQ
-compareCode codeA@(x: xs) codeB@(y: ys)
-    | cmp == EQ = compareCode xs ys
-    | otherwise = cmp
-    where cmp = compareCode [x] [y]
-compareCode _ _ = error "Unmatch length of code"
-
-
-minimumPossibility :: [Possibility] -> Possibility -- TODO: remove (and comparator above)
-minimumPossibility p
-    | length minLists == 1      = head minLists
-    | length validMinLists == 1 = head validMinLists
-    | null validMinLists        = smallTieBreaker p
-    | otherwise                 = smallTieBreaker validMinLists
-    where
-        getThird (_, _, x)      = x
-        (minScore, _, _)        = minimum p
-        minLists                = filter (\(score, _, _) -> minScore == score) p
-        validMinLists           = validTieBreaker minLists
-        validTieBreaker list    = filter (\(_, v, _) -> v) $ debug list
-        smallTieBreaker list    = minimumBy (\(_, _, codeA) (_, _, codeB) -> compareCode codeA codeB) list
-
 
 scoreGuess :: CodeSet -> Code -> Possibility
 scoreGuess possible code = (score, not valid, code)
@@ -116,6 +69,7 @@ scoreGuess possible code = (score, not valid, code)
             | v == o = (v, c + 1) : xs
             | otherwise = x : incCount o xs
         getCounts xs = foldr incCount [] xs
+
 
 
 playMastermind ::  Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
