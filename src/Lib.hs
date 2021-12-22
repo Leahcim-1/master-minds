@@ -119,59 +119,37 @@ scoreGuess possible code = (score, valid, code)
 
 playMastermind ::  Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
 playMastermind guess solution k fullSet possibleSet = do
-  -- TODOremove putStrLn $ "Debug (Remaining): " ++ (show $ length possibleSet)
-  -- TODOremove putStrLn $ "Debug (Remaining): " ++ (show $ take 5 possibleSet)
   putStrLn $ "Guessing: " ++ show guess
   let response@(blk, wht) = guessResult guess solution
   putStrLn $
     "Response: " ++ show blk ++ " black and "
       ++ show wht ++ " white"
   if blk == length guess then do
-    putStrLn "Solved early!"
+    putStrLn $ "Solved: " ++ show guess
     return k
   else do
     let possibleSet' = filterCodeSet possibleSet guess response
-    -- TODOremove putStrLn $ "Debug (Response): " ++ (show response)
-    -- TODOremove putStrLn $ "Debug (Remaining New): " ++ (show $ length possibleSet')
-    -- TODOremove putStrLn $ "Debug (Remaining New): " ++ (show $ take 5 possibleSet')
-    if length possibleSet' == 1
-      then do
-        putStrLn $ "Solved: " ++ show (head possibleSet')
-        return (k + 1)
-      else do
-        let possibilities = map (scoreGuess possibleSet') fullSet
-        -- TODOremove putStrLn $ "Debug (Possibilities): " ++ (show $ take 3 possibilities)
-        let (_, _, nextGuess) = minimum possibilities
-        playMastermind nextGuess solution (k + 1) fullSet possibleSet'
+    let possibilities = map (scoreGuess possibleSet') fullSet
+    let (_, _, nextGuess) = minimum possibilities
+    playMastermind nextGuess solution (k + 1) fullSet possibleSet'
 
 
 
 playMastermindParMap ::  Code -> Code -> Int -> CodeSet -> CodeSet -> IO Int
 playMastermindParMap guess solution k fullSet possibleSet = do
-  -- TODOremove putStrLn $ "Debug (Remaining): " ++ (show $ length possibleSet)
-  -- TODOremove putStrLn $ "Debug (Remaining): " ++ (show $ take 5 possibleSet)
   putStrLn $ "Guessing: " ++ show guess
   let response@(blk, wht) = guessResult guess solution
   putStrLn $
     "Response: " ++ show blk ++ " black and "
       ++ show wht ++ " white"
   if blk == length guess then do
-    putStrLn "Solved early!"
+    putStrLn $ "Solved: " ++ show guess
     return k
   else do
     let possibleSet' = filterCodeSet possibleSet guess response
-    -- TODOremove putStrLn $ "Debug (Response): " ++ (show response)
-    -- TODOremove putStrLn $ "Debug (Remaining New): " ++ (show $ length possibleSet')
-    -- TODOremove putStrLn $ "Debug (Remaining New): " ++ (show $ take 5 possibleSet')
-    if length possibleSet' == 1
-      then do
-        putStrLn $ "Solved: " ++ show (head possibleSet')
-        return (k + 1)
-      else do
-        let possibilities = runPar $ parMap (scoreGuess possibleSet') fullSet
-        -- TODOremove putStrLn $ "Debug (Possibilities): " ++ (show $ take 3 possibilities)
-        let (_, _, nextGuess) = minimum possibilities
-        playMastermindParMap nextGuess solution (k + 1) fullSet possibleSet'
+    let possibilities = runPar $ parMap (scoreGuess possibleSet') fullSet
+    let (_, _, nextGuess) = minimum possibilities
+    playMastermindParMap nextGuess solution (k + 1) fullSet possibleSet'
 
 
 splitToChunks :: Int -> [a] -> [[a]]
@@ -193,16 +171,11 @@ playMastermindStrategy numChunks guess solution k fullSet possibleSet = do
     "Response: " ++ show blk ++ " black and "
       ++ show wht ++ " white"
   if blk == length guess then do
-    putStrLn "Solved early!"
+    putStrLn $ "Solved: " ++ show guess
     return k
   else do
     let possibleSet' = filterCodeSet possibleSet guess response
-    if length possibleSet' == 1
-      then do
-        putStrLn $ "Solved: " ++ show (head possibleSet')
-        return (k + 1)
-      else do
-        let chunks = splitToChunks numChunks fullSet -- TODO: Tune the number of chunks
-        let possibilities = map (bestFromChunk possibleSet') chunks `using` parList rseq
-        let (_, _, nextGuess) = foldl1' min possibilities
-        playMastermindStrategy numChunks nextGuess solution (k + 1) fullSet possibleSet'
+    let chunks = splitToChunks numChunks fullSet -- TODO: Tune the number of chunks
+    let possibilities = map (bestFromChunk possibleSet') chunks `using` parList rseq
+    let (_, _, nextGuess) = foldl1' min possibilities
+    playMastermindStrategy numChunks nextGuess solution (k + 1) fullSet possibleSet'
