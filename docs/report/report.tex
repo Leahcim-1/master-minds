@@ -36,7 +36,7 @@ Master Mind is a classic codebreaking game first played in 1970. Gameplay goes a
 	\item The game ends after the code has been guessed (the codebreaker wins) or eight incorrect guesses have been made (the codemaker wins), whichever occurs first.
 \end{enumerate}
 
-A photo of a physical game board is shown below, albeit with slightly different colors.
+A photo of a physical game board is show below, albeit with slightly different colors.
 \begin{figure}[h]
 	\centering
 	\includegraphics{mm.jpeg}
@@ -185,7 +185,7 @@ The main change here is that the $map$ over candidate guesses has been replaced 
 	\includegraphics[width=35em]{../images/first_pm.png}
 \end{figure}
 
-Using different numbers of cores affected this performance, as shown in the graph below. As seen, increasing from 1 to 4 cores caused a significant performance improvement. Increasing past 4 cores results in minimal further improvement. This is likely because our algorithm is largely CPU-bound and the machine only has 4 physical cores mapped to 8 logical cores.
+Using different numbers of cores affected this performance, as shown in the graph below. As seen, increasing from 1 to 4 cores caused a significant performance improvement. Increasing past 4 cores results in minimal further improvement. This is likely because our algorithm is largely CPU-bound and the machine only has 4 physical cores mapped to 8 logical cores. Increasing past 8 cores results in reduced performance, as in that case there are more threads than logical cores.
 % TODO: line graph of number of cores vs. performance improvement --Solved
 \begin{figure}[H]
 	\centering
@@ -200,13 +200,10 @@ At attempt was also made at using $parMap$ within the $scoreGuess$ function to p
 	\includegraphics[width=25em]{../images/second_pm.png}
 \end{figure}
 
-
-%TODO: we should try to fix the bug or leave it out for the one that ran 8 CPUs but only on one of them. it's also just parMap so don't expect it to be very different. -- ?
-
 Even with the successful parallelization above, a large number of sparks are created.
 
 \subsection{Chunks}
-Aiming to create fewer sparks, we designed a parallelization strategy which splits the candidate codes into $n$ chunks and then parallelizes computation over those chunks.
+Aiming to create fewer sparks, we designed a parallelization strategy which splits the candidate codes into $m$ chunks and then parallelizes computation over those chunks.
 \begin{minted}{haskell}
 bestFromChunk :: CodeSet -> CodeSet -> Possibility
 bestFromChunk possibleSet chunk = foldl1' min $ map (scoreGuess possibleSet) chunk
@@ -230,7 +227,7 @@ playMastermindChunkStrategy numChunks guess solution k fullSet possibleSet = do
     playMastermindChunkStrategy numChunks nextGuess solution (k + 1) fullSet possibleSet'
 \end{minted}
 
-Notice that this strategy, aside from splitting the scoring of candidate codes into parallelized chunks, also selects the best code from each chunk. Then the best of these best-in-chunk codes is selected as the next guess. Doing so reduces the peak memory usage of the algorithm, contributing to the improved performance. Below, a Threadscope screenshot with $n=64$ chunks is shown. The run time is 17 seconds, representing a performance improvement of 2.94 times over the sequential implementation and 1.18 times over the parMap implementation running on 8 cores. Notice however that the computational load is not balanced evenly between cores.
+Notice that this strategy, aside from splitting the scoring of candidate codes into parallelized chunks, also selects the best code from each chunk. Then the best of these best-in-chunk codes is selected as the next guess. Doing so reduces the peak memory usage of the algorithm, contributing to the improved performance. Below, a Threadscope screenshot with $m=64$ chunks is shown. The run time is 17 seconds, representing a performance improvement of 2.94 times over the sequential implementation and 1.18 times over the parMap implementation running on 8 cores. Notice however that the computational load is not balanced evenly between cores.
 
 % TODO screenshot of 64 chunks showing load balance issues -- Solved
 \begin{figure}[H]
@@ -240,21 +237,21 @@ Notice that this strategy, aside from splitting the scoring of candidate codes i
 
 
 
-Increasing the number of chunks allows for better load balancing, increasing performance. The screenshot below shows the distribution of work between cores with $n=512$ chunks. The algorithm is able to finish in 15 seconds.
+Increasing the number of chunks allows for better load balancing, increasing performance. The screenshot below shows the distribution of work between cores with $m=512$ chunks. The algorithm is able to finish in 15 seconds.
 % TODO screenshot of 512 chunks showing improved load balancing -- Solved
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=25em]{../images/512_sc.png}
 \end{figure}
 
-Increasing $n$ past 512 results in minimal performance gains, as the load is already evenly balanced.
+Increasing $m$ past 512 results in minimal performance gains, as the load is already evenly balanced. Notice also that for $m<8$, performance deteriorates rapidly as some logical cores are left unused.
 % TODO graph showing performance vs. number of chunks -- Solved
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=40em]{../images/line_sc.png}
 \end{figure}
 
-It is also interesting to consider that on later turns, the possible solution set $P$ has shrunk. Thus, fewer chunks should be necessary for proper load balancing. An implementation was tested with various $n$ which split computation into $\frac{n}{2^k}$ chunks on turn $k$, however performance was not improved. Scaling factors of $1.2$ and $1.5$ were also tried. Again, there was no improvement over using the constant chunking.
+It is also interesting to consider that on later turns, the possible solution set $P$ has shrunk. Thus, fewer chunks should be necessary for proper load balancing. An implementation was tested with various $m$ which split computation into $\frac{m}{2^k}$ chunks on turn $k$, however performance was not improved. Scaling factors of $1.2$ and $1.5$ were also tried. Again, there was no improvement over using the constant chunking.
 
 % TODO do we need to discuss these shrinking chunk results quantitatively? -- Maybe not 
 
